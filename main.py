@@ -74,14 +74,6 @@ async def entrypoint(ctx: JobContext):
 
     logger.info("AgentSession started and running!")
 
-    # Send initial greeting
-    await session.say(
-        "Hello, you've reached Metro LLC. How can I help you today?",
-        allow_interruptions=True
-    )
-
-    logger.info("Initial greeting sent")
-
 if __name__ == "__main__":
     cli.run_app(
         WorkerOptions(
