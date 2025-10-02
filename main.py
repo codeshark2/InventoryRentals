@@ -66,15 +66,8 @@ async def entrypoint(ctx: JobContext):
     
     logger.info("Agent configured, creating session...")
     
-    # Create and start AgentSession
-    session = AgentSession(
-        llm=openai.realtime.RealtimeModel(
-            model="gpt-realtime",
-            voice="sage",
-            temperature=0.7,
-            modalities=["audio", "text"],
-        ),
-    )
+    # Create and start AgentSession (uses Agent's configuration)
+    session = AgentSession()
     
     # Start the session with the agent and room
     await session.start(agent, room=ctx.room)
