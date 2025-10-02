@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+credentials.json
+*.log
+.DS_Store
+test_*.py
+data/equipment_inventory.csv
+

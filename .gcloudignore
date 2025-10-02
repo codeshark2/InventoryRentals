@@ -1,0 +1,10 @@
+.git
+.gitignore
+venv/
+__pycache__/
+*.pyc
+.env
+*.md
+test_*.py
+data/equipment_inventory.csv
+

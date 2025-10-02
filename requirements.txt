@@ -1,0 +1,11 @@
+livekit>=0.17.0
+livekit-agents>=1.2.14
+livekit-plugins-openai>=0.9.0
+livekit-plugins-deepgram>=0.8.0
+livekit-plugins-elevenlabs>=0.7.0
+google-auth>=2.34.0
+google-auth-oauthlib>=1.2.0
+google-auth-httplib2>=0.2.0
+google-api-python-client>=2.147.0
+python-dotenv>=1.0.0
+aiofiles>=24.1.0

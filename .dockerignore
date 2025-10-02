@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.git/
+.gitignore
+*.md
+test_*.py
+check_sheets.py
+test_google_sheets.py
+data/equipment_inventory.csv
+.gcloudignore
+
