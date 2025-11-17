@@ -1,11 +1,22 @@
 import logging
 from livekit.agents import llm
 
-from ..services.google_sheets_service import GoogleSheetsDataService
+from ..services.postgres_service import PostgresDataService
 from ..services.verification_service import VerificationService
 from ..utils.conversation_state import ConversationState, WorkflowStage
 from ..utils.prompts import get_system_prompt
 from ..utils.function_tools import format_equipment_for_context
+from ..utils.validators import (
+    ValidationError,
+    validate_license_number,
+    validate_equipment_id,
+    validate_address,
+    validate_price,
+    validate_rental_days,
+    validate_operator_name,
+    validate_phone_number,
+    validate_policy_number
+)
 
 logger = logging.getLogger("rental-agent")
 logger.setLevel(logging.INFO)
@@ -13,9 +24,9 @@ logger.setLevel(logging.INFO)
 
 class RentalAgent:
     """Main voice agent for equipment rental system."""
-    
+
     def __init__(self):
-        self.data_service = GoogleSheetsDataService()
+        self.data_service = PostgresDataService()
         self.verification_service = VerificationService()
         self.state = ConversationState()
         self.agent = None
@@ -76,13 +87,19 @@ class RentalAgent:
     async def verify_business_license(self, license_number: str):
         """
         Verify customer's business license with state authorities.
-        
+
         Args:
             license_number: The business license number provided by the customer
         """
-        
+
+        try:
+            validate_license_number(license_number)
+        except ValidationError as e:
+            logger.warning(f"License validation failed: {e}")
+            return f"Invalid license number format: {str(e)}"
+
         logger.info(f"Verifying business license: {license_number}")
-        
+
         success, message = await self.verification_service.verify_business_license(license_number)
         
         if success:
@@ -118,13 +135,19 @@ class RentalAgent:
     async def select_equipment(self, equipment_id: str):
         """
         Select specific equipment by ID after customer chooses.
-        
+
         Args:
             equipment_id: The equipment ID (e.g., EQ001)
         """
-        
+
+        try:
+            validate_equipment_id(equipment_id)
+        except ValidationError as e:
+            logger.warning(f"Equipment ID validation failed: {e}")
+            return f"Invalid equipment ID format: {str(e)}"
+
         logger.info(f"Selecting equipment: {equipment_id}")
-        
+
         equipment = await self.data_service.get_equipment_by_id(equipment_id)
         
         if not equipment:
@@ -145,13 +168,19 @@ class RentalAgent:
     async def verify_site_safety(self, job_address: str):
         """
         Verify job site can safely accommodate selected equipment.
-        
+
         Args:
             job_address: The job site address provided by customer
         """
-        
+
+        try:
+            validate_address(job_address)
+        except ValidationError as e:
+            logger.warning(f"Address validation failed: {e}")
+            return f"Invalid address format: {str(e)}"
+
         logger.info(f"Verifying site safety: {job_address}")
-        
+
         if not self.state.selected_equipment:
             return "No equipment selected yet."
         
@@ -179,14 +208,21 @@ class RentalAgent:
     async def propose_price(self, proposed_daily_rate: float, rental_days: int = 1):
         """
         Propose a negotiated price for the equipment rental.
-        
+
         Args:
             proposed_daily_rate: The proposed daily rental rate
             rental_days: Number of days for rental (default: 1)
         """
-        
+
+        try:
+            validate_price(proposed_daily_rate)
+            validate_rental_days(rental_days)
+        except ValidationError as e:
+            logger.warning(f"Price/duration validation failed: {e}")
+            return f"Invalid pricing information: {str(e)}"
+
         logger.info(f"Price proposal: ${proposed_daily_rate}/day for {rental_days} days")
-        
+
         if not self.state.selected_equipment:
             return "No equipment selected."
         
@@ -215,13 +251,19 @@ class RentalAgent:
     async def accept_price(self, confirmed_daily_rate: float):
         """
         Accept the agreed price and move to operator verification.
-        
+
         Args:
             confirmed_daily_rate: The confirmed daily rental rate
         """
-        
+
+        try:
+            validate_price(confirmed_daily_rate)
+        except ValidationError as e:
+            logger.warning(f"Price validation failed: {e}")
+            return f"Invalid price: {str(e)}"
+
         logger.info(f"Price accepted: ${confirmed_daily_rate}/day")
-        
+
         self.state.agreed_daily_rate = confirmed_daily_rate
         self.state.advance_stage()
         
@@ -235,15 +277,23 @@ class RentalAgent:
     async def verify_operator_credentials(self, operator_name: str, operator_license: str, operator_phone: str):
         """
         Verify operator has proper certifications for selected equipment.
-        
+
         Args:
             operator_name: Name of the equipment operator
             operator_license: Operator's license/certification number
             operator_phone: Operator's contact phone number
         """
-        
+
+        try:
+            validate_operator_name(operator_name)
+            validate_license_number(operator_license)
+            validate_phone_number(operator_phone)
+        except ValidationError as e:
+            logger.warning(f"Operator validation failed: {e}")
+            return f"Invalid operator information: {str(e)}"
+
         logger.info(f"Verifying operator: {operator_name}, license: {operator_license}")
-        
+
         if not self.state.selected_equipment:
             return "No equipment selected."
         
@@ -273,13 +323,19 @@ class RentalAgent:
     async def verify_insurance_coverage(self, policy_number: str):
         """
         Verify customer's insurance meets minimum requirements for selected equipment.
-        
+
         Args:
             policy_number: Insurance policy number
         """
-        
+
+        try:
+            validate_policy_number(policy_number)
+        except ValidationError as e:
+            logger.warning(f"Policy number validation failed: {e}")
+            return f"Invalid policy number: {str(e)}"
+
         logger.info(f"Verifying insurance: {policy_number}")
-        
+
         if not self.state.selected_equipment:
             return "No equipment selected."
         

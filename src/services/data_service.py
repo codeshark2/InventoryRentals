@@ -60,17 +60,19 @@ class EquipmentDataService:
             if not equipment_found or already_rented:
                 return False
             
-            # Write back to CSV
+            # Write back to CSV using proper CSV writer
             async with aiofiles.open(self.csv_path, mode='w', encoding='utf-8', newline='') as f:
                 if all_equipment:
-                    fieldnames = all_equipment[0].keys()
-                    content = ','.join(fieldnames) + '\n'
-                    
-                    for eq in all_equipment:
-                        row = ','.join(str(eq[field]) for field in fieldnames)
-                        content += row + '\n'
-                    
-                    await f.write(content)
-            
+                    fieldnames = list(all_equipment[0].keys())
+
+                    # Use StringIO to write CSV properly with escaping
+                    from io import StringIO
+                    output = StringIO()
+                    writer = csv.DictWriter(output, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(all_equipment)
+
+                    await f.write(output.getvalue())
+
             return True
 

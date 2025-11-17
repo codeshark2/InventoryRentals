@@ -1,9 +1,13 @@
 import asyncio
 import os
+import logging
 from typing import List, Dict, Optional
 from google.oauth2 import service_account
+from google.auth.exceptions import DefaultCredentialsError
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
+logger = logging.getLogger("rental-agent")
 
 
 class GoogleSheetsDataService:
@@ -13,12 +17,14 @@ class GoogleSheetsDataService:
         self,
         credentials_path: str = "credentials.json",
         spreadsheet_id: str = None,
-        range_name: str = None
+        range_name: str = None,
+        timeout: int = 30
     ):
         self.credentials_path = credentials_path
         self.spreadsheet_id = spreadsheet_id or os.getenv("GOOGLE_SHEET_ID")  # Match .env variable name
         # Use "Inventory" sheet by default, or from env
         self.range_name = range_name or os.getenv("GOOGLE_SHEETS_RANGE", "Inventory!A:J")
+        self.timeout = timeout  # API call timeout in seconds
         self._lock = asyncio.Lock()
         self._service = None
         
@@ -37,8 +43,8 @@ class GoogleSheetsDataService:
                     # Use default Cloud Run credentials
                     from google.auth import default
                     credentials, _ = default(scopes=SCOPES)
-            except Exception as e:
-                print(f"Error loading credentials: {e}")
+            except (FileNotFoundError, DefaultCredentialsError, ValueError) as e:
+                logger.error(f"Error loading credentials: {e}")
                 raise
                 
             self._service = build('sheets', 'v4', credentials=credentials)
@@ -46,8 +52,8 @@ class GoogleSheetsDataService:
     
     async def get_all_equipment(self) -> List[Dict]:
         """Read all equipment from Google Sheets."""
-        loop = asyncio.get_event_loop()
-        
+        loop = asyncio.get_running_loop()
+
         def _read_sheet():
             try:
                 service = self._get_service()
@@ -56,33 +62,40 @@ class GoogleSheetsDataService:
                     spreadsheetId=self.spreadsheet_id,
                     range=self.range_name
                 ).execute()
-                
+
                 values = result.get('values', [])
-                
+
                 if not values:
                     return []
-                
+
                 # First row is headers
                 headers = values[0]
                 equipment_list = []
-                
+
                 # Convert rows to dictionaries
                 for row in values[1:]:
                     # Pad row if it has fewer columns than headers
                     while len(row) < len(headers):
                         row.append('')
-                    
+
                     equipment = dict(zip(headers, row))
                     equipment_list.append(equipment)
-                
+
                 return equipment_list
-                
+
             except HttpError as error:
-                print(f"An error occurred: {error}")
+                logger.error(f"Google Sheets API error: {error}")
                 return []
-        
-        # Run in thread pool to avoid blocking
-        return await loop.run_in_executor(None, _read_sheet)
+
+        # Run in thread pool to avoid blocking with timeout
+        try:
+            return await asyncio.wait_for(
+                loop.run_in_executor(None, _read_sheet),
+                timeout=self.timeout
+            )
+        except asyncio.TimeoutError:
+            logger.error(f"Google Sheets API call timed out after {self.timeout} seconds")
+            return []
     
     async def get_available_equipment(self) -> List[Dict]:
         """Get only available equipment."""
@@ -103,8 +116,8 @@ class GoogleSheetsDataService:
         Returns True if update successful, False if equipment already rented.
         """
         async with self._lock:
-            loop = asyncio.get_event_loop()
-            
+            loop = asyncio.get_running_loop()
+
             def _update_sheet():
                 try:
                     # Read current data
@@ -162,10 +175,18 @@ class GoogleSheetsDataService:
                     ).execute()
                     
                     return True
-                    
+
                 except HttpError as error:
-                    print(f"An error occurred: {error}")
+                    logger.error(f"Google Sheets API error during update: {error}")
                     return False
-            
-            return await loop.run_in_executor(None, _update_sheet)
+
+            # Run in thread pool with timeout
+            try:
+                return await asyncio.wait_for(
+                    loop.run_in_executor(None, _update_sheet),
+                    timeout=self.timeout
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"Google Sheets update timed out after {self.timeout} seconds")
+                return False
 
