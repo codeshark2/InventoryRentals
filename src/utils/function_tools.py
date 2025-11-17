@@ -27,13 +27,13 @@ def create_function_tools() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "search_available_equipment",
-                "description": "Search for available equipment based on customer needs. Use natural language from customer request.",
+                "description": "Search for available inventory items based on customer needs. Use natural language from customer request.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "search_query": {
                             "type": "string",
-                            "description": "Natural language search query from customer (e.g., 'excavator for foundation work', 'forklift under $400')"
+                            "description": "Natural language search query from customer describing what they need"
                         }
                     },
                     "required": ["search_query"]
@@ -44,13 +44,13 @@ def create_function_tools() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "select_equipment",
-                "description": "Select specific equipment by ID after customer chooses.",
+                "description": "Select specific inventory item by ID after customer chooses.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "equipment_id": {
                             "type": "string",
-                            "description": "The equipment ID (e.g., EQ001)"
+                            "description": "The item ID (e.g., ITM001)"
                         }
                     },
                     "required": ["equipment_id"]
@@ -61,13 +61,13 @@ def create_function_tools() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "verify_site_safety",
-                "description": "Verify job site can safely accommodate selected equipment.",
+                "description": "Verify delivery location can safely accommodate selected inventory item.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "job_address": {
                             "type": "string",
-                            "description": "The job site address provided by customer"
+                            "description": "The delivery/usage address provided by customer"
                         }
                     },
                     "required": ["job_address"]
@@ -78,7 +78,7 @@ def create_function_tools() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "propose_price",
-                "description": "Propose a negotiated price for the equipment rental.",
+                "description": "Propose a negotiated price for the inventory rental.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -116,21 +116,21 @@ def create_function_tools() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "verify_operator_credentials",
-                "description": "Verify operator has proper certifications for selected equipment.",
+                "description": "Verify operator has proper certifications for selected inventory item.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "operator_name": {
                             "type": "string",
-                            "description": "Name of the equipment operator"
+                            "description": "Name of the authorized user"
                         },
                         "operator_license": {
                             "type": "string",
-                            "description": "Operator's license/certification number"
+                            "description": "User's license/certification number"
                         },
                         "operator_phone": {
                             "type": "string",
-                            "description": "Operator's contact phone number"
+                            "description": "User's contact phone number"
                         }
                     },
                     "required": ["operator_name", "operator_license", "operator_phone"]
@@ -141,7 +141,7 @@ def create_function_tools() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "verify_insurance_coverage",
-                "description": "Verify customer's insurance meets minimum requirements for selected equipment.",
+                "description": "Verify customer's insurance meets minimum requirements for selected inventory item.",
                 "parameters": {
                     "type": "object",
                     "properties": {

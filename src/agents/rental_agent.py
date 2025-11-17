@@ -88,7 +88,7 @@ class RentalAgent:
         if success:
             self.state.business_license = license_number
             self.state.customer_verified = True
-            self.state.business_name = "Metro Construction LLC"
+            self.state.business_name = "Verified Business Customer"
             self.state.advance_stage()
             
             await self._update_instructions()
@@ -351,7 +351,7 @@ You'll receive email confirmation shortly. Is there anything else I can help you
         """
         
         logger.info(f"Ending call: {reason}")
-        
+
         self.state.end_call(reason)
-        
-        return "Thank you for contacting Metro Equipment Rentals. Have a great day!"
+
+        return "Thank you for contacting Easy Inventory Rentals. Have a great day!"
