@@ -1,10 +1,10 @@
 # AuthorizationRentals
 
-AI-powered voice agent for automating construction equipment rental workflows using LiveKit and OpenAI Realtime API.
+AI-powered voice agent for automating inventory rental workflows using LiveKit and OpenAI Realtime API.
 
 ## Overview
 
-AuthorizationRentals is a production-ready voice agent system designed to handle inbound equipment rental calls from start to finish. It manages complex multi-step workflows including customer verification, equipment discovery, price negotiation, operator certification, and insurance verification - all through natural voice conversations.
+AuthorizationRentals is a production-ready voice agent system designed to handle inbound inventory rental calls from start to finish. It manages complex multi-step workflows including customer verification, inventory discovery, price negotiation, user certification, and insurance verification - all through natural voice conversations.
 
 ### Key Features
 
@@ -13,9 +13,9 @@ AuthorizationRentals is a production-ready voice agent system designed to handle
 - 🧠 **Dynamic Instruction Updates** - Agent instructions adapt to each workflow stage
 - 📋 **Function Calling** - Structured LLM tool calls for verifications and data operations
 - 💰 **Smart Price Negotiation** - Configurable min/max rates with attempt limits
-- ✅ **Multi-Level Verification** - Business license, site safety, operator certs, insurance
+- ✅ **Multi-Level Verification** - Business license, location safety, user certs, insurance
 - 🔒 **Atomic Booking** - Race condition handling for concurrent agents
-- 📊 **CSV Inventory Management** - Simple file-based equipment database
+- 📊 **CSV Inventory Management** - Simple file-based inventory database
 
 ## Architecture
 
@@ -93,7 +93,7 @@ AuthorizationRentals/
 │   ├── agents/
 │   │   └── rental_agent.py          # Main agent orchestration
 │   ├── services/
-│   │   ├── data_service.py          # Equipment inventory management
+│   │   ├── data_service.py          # Inventory management
 │   │   ├── google_sheets_service.py # Google Sheets integration
 │   │   └── verification_service.py  # External verification APIs
 │   └── utils/
@@ -101,7 +101,7 @@ AuthorizationRentals/
 │       ├── prompts.py               # Stage-based prompt templates
 │       └── function_tools.py        # Tool formatting utilities
 ├── data/
-│   └── equipment_inventory.csv      # Equipment database
+│   └── equipment_inventory.csv      # Inventory database
 ├── requirements.txt                 # Python dependencies
 ├── Dockerfile                       # Container configuration
 └── render.yaml                      # Deployment configuration
@@ -224,7 +224,7 @@ See `src/agents/rental_agent.py:61-71` for implementation.
 **Goal:** Collect job details and verify site safety
 
 **LLM Behavior:**
-- Request job site address
+- Request delivery location address
 - Explain equipment requirements (certifications, weight class)
 - Call site verification
 - Confirm safety approval
@@ -287,7 +287,7 @@ See `src/agents/rental_agent.py:61-71` for implementation.
 - `verify_operator_credentials(operator_name: str, operator_license: str, operator_phone: str)`
 
 **Context Provided:**
-- Required certification type (e.g., "Class A CDL + Crane Operator")
+- Required certification type (e.g., "Basic Safety Certification")
 
 **State Updates:**
 - `operator_name` stored
@@ -374,7 +374,7 @@ Verifies business license with state authorities.
 Searches inventory based on natural language query.
 
 **Parameters:**
-- `search_query` - Natural language description (e.g., "excavator for foundation work", "forklift under $400")
+- `search_query` - Natural language description (e.g., "generator for event", "projector under $400")
 
 **Returns:**
 Formatted list of available equipment with:
@@ -387,14 +387,14 @@ Formatted list of available equipment with:
 
 **Example:**
 ```
-Found 3 available equipment:
+Found 3 available items:
 
-EQ001 - Compact Excavator (20ft dig depth)
-  Category: Excavator | Daily: $450 | Cert: Class B CDL
+ITM001 - Professional Generator (8000W capacity)
+  Category: Power Equipment | Daily: $450 | Cert: Basic Safety
   Location: Warehouse A
 
-EQ003 - Telescopic Forklift (15ft reach)
-  Category: Material Handler | Daily: $275 | Cert: Forklift Operator
+ITM003 - HD Projector (4K, 5000 lumens)
+  Category: AV Equipment | Daily: $275 | Cert: None
   Location: Yard B
 ```
 
@@ -421,7 +421,7 @@ Selects specific equipment by ID.
 ### Site Verification
 
 #### `verify_site_safety(job_address: str)`
-Verifies job site can safely accommodate equipment.
+Verifies delivery location can safely accommodate equipment.
 
 **Parameters:**
 - `job_address` - Job site address
@@ -547,7 +547,7 @@ Gracefully ends the conversation.
 - `reason` - End reason code (e.g., "completed", "failed_verification", "no_equipment")
 
 **Returns:**
-`"Thank you for contacting Metro Equipment Rentals. Have a great day!"`
+`"Thank you for contacting Easy Inventory Rentals. Have a great day!"`
 
 **Side Effects:**
 - Updates `state.stage = CALL_ENDED`
@@ -632,8 +632,8 @@ Edit `data/equipment_inventory.csv` to manage inventory:
 
 ```csv
 Equipment ID,Equipment Name,Category,Daily Rate,Max Rate,Status,Operator Cert Required,Min Insurance,Storage Location,Weight Class
-EQ001,Compact Excavator,Excavator,450.00,500.00,AVAILABLE,Class B CDL,500000,Warehouse A,Medium
-EQ002,Skid Steer Loader,Loader,275.00,325.00,AVAILABLE,None,250000,Yard B,Light
+ITM001,Professional Generator,Power Equipment,450.00,500.00,AVAILABLE,Basic Safety,500000,Warehouse A,Medium
+ITM002,HD Projector,AV Equipment,275.00,325.00,AVAILABLE,None,250000,Yard B,Light
 ```
 
 **Fields:**

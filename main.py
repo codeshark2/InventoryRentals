@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from dotenv import load_dotenv
 
 from livekit.agents import (
@@ -14,6 +15,7 @@ from livekit.agents import (
 from livekit.plugins import openai
 
 from src.agents.rental_agent import RentalAgent
+from health_server import start_health_server
 
 # Load environment variables
 load_dotenv()
@@ -21,6 +23,25 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("rental-agent")
+
+
+def validate_environment():
+    """Validate required environment variables on startup."""
+    required_vars = [
+        "LIVEKIT_URL",
+        "LIVEKIT_API_KEY",
+        "LIVEKIT_API_SECRET",
+        "OPENAI_API_KEY"
+    ]
+
+    missing = [var for var in required_vars if not os.getenv(var)]
+
+    if missing:
+        error_msg = f"Missing required environment variables: {', '.join(missing)}"
+        logger.error(error_msg)
+        raise RuntimeError(error_msg)
+
+    logger.info("Environment validation passed")
 
 
 async def entrypoint(ctx: JobContext):
@@ -75,6 +96,12 @@ async def entrypoint(ctx: JobContext):
     logger.info("AgentSession started and running!")
 
 if __name__ == "__main__":
+    # Validate environment before starting
+    validate_environment()
+
+    # Start health check server
+    start_health_server(port=int(os.getenv("HEALTH_PORT", "8080")))
+
     cli.run_app(
         WorkerOptions(
             entrypoint_fnc=entrypoint,
