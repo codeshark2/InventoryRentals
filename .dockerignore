@@ -46,6 +46,14 @@ Thumbs.db
 .github/
 .gitlab-ci.yml
 .gcloudignore
+requirements-dev.txt
+pyproject.toml
+.flake8
+.mypy_cache
+.pytest_cache
+.coverage
+htmlcov
+.tox
 
 # Docker
 docker-compose.yml
