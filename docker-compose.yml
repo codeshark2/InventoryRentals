@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  rental-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rental-agent
+    env_file:
+      - .env
+    volumes:
+      # Mount credentials if using local service account file
+      - ./credentials.json:/app/credentials.json:ro
+    restart: unless-stopped
+    # Uncomment if you need to expose ports
+    # ports:
+    #   - "8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

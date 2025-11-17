@@ -7,7 +7,7 @@ services:
     region: oregon
     envVars:
       - key: LIVEKIT_URL
-        value: wss://lsproj-o7vs1inc.livekit.cloud
+        sync: false
       - key: LIVEKIT_API_KEY
         sync: false
       - key: LIVEKIT_API_SECRET
@@ -15,11 +15,11 @@ services:
       - key: OPENAI_API_KEY
         sync: false
       - key: DEEPGRAM_API_KEY
-        value: fdf31b439aa7693803a310db45b5f0737db9b9da
+        sync: false
       - key: ELEVEN_API_KEY
-        value: sk_4f07a0ca89949bc149c1456da4c897a24dda1100503d4074
+        sync: false
       - key: GOOGLE_SHEET_ID
-        value: 1dBUfVvTBapzmHQlrM9BOs2C5s0vkA4l8vjdgCGAkuZ0
+        sync: false
       - key: GOOGLE_SHEETS_RANGE
-        value: Inventory!A:J
+        sync: false
 

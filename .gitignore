@@ -5,9 +5,20 @@ __pycache__/
 *.pyd
 .Python
 .env
+!.env.example
 credentials.json
 *.log
 .DS_Store
 test_*.py
 data/equipment_inventory.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
 
